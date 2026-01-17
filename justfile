@@ -44,3 +44,7 @@ release:
 # Lokaler Test-Build ohne Release (Snapshot)
 release-snapshot:
     goreleaser release --snapshot --clean
+
+# Generate demo GIF with vhs
+demo:
+    vhs < docs/eol-date.tape

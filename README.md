@@ -1,5 +1,7 @@
 # eol-date
 
+![eol-date demo](docs/eol-date.gif)
+
 CLI tool to check end-of-life dates for software products using the [endoflife.date](https://endoflife.date) API.
 
 ## Features
