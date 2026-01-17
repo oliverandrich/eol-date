@@ -11,6 +11,7 @@ CLI tool to check end-of-life dates for software products using the [endoflife.d
 - Displays release dates, support end dates, EOL dates, and LTS status
 - Fuzzy search with interactive product selection
 - Color-coded output (green = active, red = EOL)
+- Multiple output formats: table, markdown, csv, html
 
 ## Installation
 
@@ -45,6 +46,12 @@ eol-date python --all
 
 # Fuzzy search (shows interactive selection)
 eol-date post  # matches postgres, postgresql, etc.
+
+# Output in different formats
+eol-date python --format markdown  # Markdown table
+eol-date python --format csv       # CSV format
+eol-date python --format html      # HTML table
+eol-date python -f csv             # Short form
 ```
 
 ### Example Output

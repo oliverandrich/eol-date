@@ -28,6 +28,12 @@ func main() {
 				Aliases: []string{"a"},
 				Usage:   "show all cycles including end-of-life versions",
 			},
+			&cli.StringFlag{
+				Name:    "format",
+				Aliases: []string{"f"},
+				Usage:   "output format: table, markdown, csv, html",
+				Value:   "table",
+			},
 		},
 		Action: run,
 	}
@@ -45,6 +51,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 
 	query := cmd.Args().First()
 	showAll := cmd.Bool("all")
+	format := cmd.String("format")
 
 	products, err := api.FetchProducts(ctx)
 	if err != nil {
@@ -70,7 +77,7 @@ func run(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to fetch product details: %w", err)
 	}
 
-	ui.DisplayCycles(product, cycles, showAll)
+	ui.DisplayCycles(product, cycles, showAll, format)
 
 	return nil
 }

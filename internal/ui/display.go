@@ -4,7 +4,9 @@
 package ui
 
 import (
+	"encoding/csv"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -151,20 +153,68 @@ func formatEOL(eol api.EOLValue) relativeDate {
 	}
 }
 
-// DisplayCycles prints the release cycles in a formatted table
-func DisplayCycles(product string, cycles []api.Cycle, showAll bool) {
-	var displayCycles []api.Cycle
-	if showAll {
-		displayCycles = cycles
-	} else {
-		for _, c := range cycles {
-			if !c.EOL.IsEOL() {
-				displayCycles = append(displayCycles, c)
-			}
-		}
-	}
+// displayRow holds processed row data for output formatting
+type displayRow struct {
+	Cycle       string
+	Latest      string
+	ReleasedRel string // relative format (e.g., "3m ago")
+	ReleasedRaw string // raw date (e.g., "2025-10-07")
+	SupportRel  string // relative format
+	SupportRaw  string // raw date or boolean as string
+	EOLRel      string // relative format
+	EOLRaw      string // raw date or boolean as string
+	LTS         bool
+	IsEOL       bool
+}
 
-	if len(displayCycles) == 0 {
+// prepareDisplayRows converts cycles to displayRow slice
+func prepareDisplayRows(cycles []api.Cycle, showAll bool) []displayRow {
+	var rows []displayRow
+	for _, c := range cycles {
+		if !showAll && c.EOL.IsEOL() {
+			continue
+		}
+
+		release := formatRelease(c.ReleaseDate.Time)
+		support := formatSupport(c.Support)
+		eol := formatEOL(c.EOL)
+
+		row := displayRow{
+			Cycle:       c.Cycle,
+			Latest:      c.Latest,
+			ReleasedRel: release.relative,
+			ReleasedRaw: release.date,
+			SupportRel:  support.relative,
+			SupportRaw:  formatRawValue(c.Support),
+			EOLRel:      eol.relative,
+			EOLRaw:      formatRawValue(c.EOL),
+			LTS:         c.LTS.IsLTS(),
+			IsEOL:       c.EOL.IsEOL(),
+		}
+		rows = append(rows, row)
+	}
+	return rows
+}
+
+// formatRawValue returns the raw value for CSV/machine-readable output
+func formatRawValue(v api.EOLValue) string {
+	if v.IsBoolean {
+		if v.BoolValue {
+			return "true"
+		}
+		return "false"
+	}
+	if v.DateValue.IsZero() {
+		return ""
+	}
+	return v.DateValue.Format("2006-01-02")
+}
+
+// DisplayCycles prints the release cycles in the specified format
+func DisplayCycles(product string, cycles []api.Cycle, showAll bool, format string) {
+	rows := prepareDisplayRows(cycles, showAll)
+
+	if len(rows) == 0 {
 		if showAll {
 			fmt.Println("No release cycles found for", product)
 		} else {
@@ -174,62 +224,80 @@ func DisplayCycles(product string, cycles []api.Cycle, showAll bool) {
 		return
 	}
 
+	switch format {
+	case "markdown":
+		formatAsMarkdown(product, rows)
+	case "csv":
+		formatAsCSV(rows)
+	case "html":
+		formatAsHTML(product, rows)
+	default:
+		formatAsTable(product, cycles, rows, showAll)
+	}
+}
+
+// formatAsTable renders the lipgloss table (original format)
+func formatAsTable(product string, cycles []api.Cycle, rows []displayRow, showAll bool) {
 	fmt.Println()
 	fmt.Println(headerStyle.Render(fmt.Sprintf("Release cycles for %s", product)))
 	fmt.Println()
 
-	// Prepare data and calculate column widths
-	type rowData struct {
-		cycle    api.Cycle
-		release  relativeDate
-		support  relativeDate
-		eol      relativeDate
-		ltsStr   string
-		rowColor lipgloss.Color
-	}
-
-	data := make([]rowData, 0, len(displayCycles))
+	// Calculate column widths for combined cells
 	releasedWidth, supportWidth, eolWidth := 0, 0, 0
-
-	for _, c := range displayCycles {
-		release := formatRelease(c.ReleaseDate.Time)
-		support := formatSupport(c.Support)
-		eol := formatEOL(c.EOL)
-
-		ltsStr := ""
-		if c.LTS.IsLTS() {
-			ltsStr = "✔"
-		}
-
-		rowColor := lipgloss.Color("42") // green
-		if c.EOL.IsEOL() {
-			rowColor = lipgloss.Color("203") // red
-		}
-
-		data = append(data, rowData{c, release, support, eol, ltsStr, rowColor})
-
-		// Calculate widths (relative + 1 space + date)
-		if w := len(release.relative) + 1 + len(release.date); w > releasedWidth {
+	for _, r := range rows {
+		if w := len(r.ReleasedRel) + 1 + len(r.ReleasedRaw); w > releasedWidth {
 			releasedWidth = w
 		}
-		if w := len(support.relative) + 1 + len(support.date); w > supportWidth {
-			supportWidth = w
+		supportDisplay := r.SupportRel
+		if supportDisplay != "" && r.SupportRaw != "" && r.SupportRaw != "true" && r.SupportRaw != "false" {
+			if w := len(r.SupportRel) + 1 + len(r.SupportRaw); w > supportWidth {
+				supportWidth = w
+			}
+		} else if len(supportDisplay) > supportWidth {
+			supportWidth = len(supportDisplay)
 		}
-		if w := len(eol.relative) + 1 + len(eol.date); w > eolWidth {
-			eolWidth = w
+		eolDisplay := r.EOLRel
+		if eolDisplay != "" && r.EOLRaw != "" && r.EOLRaw != "true" && r.EOLRaw != "false" {
+			if w := len(r.EOLRel) + 1 + len(r.EOLRaw); w > eolWidth {
+				eolWidth = w
+			}
+		} else if len(eolDisplay) > eolWidth {
+			eolWidth = len(eolDisplay)
 		}
 	}
 
 	dimColor := lipgloss.Color("240")
-	rows := make([][]string, 0, len(data))
-	for _, d := range data {
-		rows = append(rows, []string{
-			d.cycle.Cycle,
-			d.cycle.Latest,
-			combinedCell(d.release, d.rowColor, dimColor, releasedWidth),
-			combinedCell(d.support, d.rowColor, dimColor, supportWidth),
-			combinedCell(d.eol, d.rowColor, dimColor, eolWidth),
-			d.ltsStr,
+	tableRows := make([][]string, 0, len(rows))
+	for _, r := range rows {
+		rowColor := lipgloss.Color("42") // green
+		if r.IsEOL {
+			rowColor = lipgloss.Color("203") // red
+		}
+
+		releaseRel := relativeDate{r.ReleasedRel, r.ReleasedRaw}
+		supportDate := r.SupportRaw
+		if supportDate == "true" || supportDate == "false" {
+			supportDate = ""
+		}
+		supportRel := relativeDate{r.SupportRel, supportDate}
+		eolDate := r.EOLRaw
+		if eolDate == "true" || eolDate == "false" {
+			eolDate = ""
+		}
+		eolRel := relativeDate{r.EOLRel, eolDate}
+
+		ltsStr := ""
+		if r.LTS {
+			ltsStr = "✔"
+		}
+
+		tableRows = append(tableRows, []string{
+			r.Cycle,
+			r.Latest,
+			combinedCell(releaseRel, rowColor, dimColor, releasedWidth),
+			combinedCell(supportRel, rowColor, dimColor, supportWidth),
+			combinedCell(eolRel, rowColor, dimColor, eolWidth),
+			ltsStr,
 		})
 	}
 
@@ -237,11 +305,10 @@ func DisplayCycles(product string, cycles []api.Cycle, showAll bool) {
 		Border(lipgloss.RoundedBorder()).
 		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("240"))).
 		Headers("CYCLE", "LATEST", "RELEASED", "SUPPORT", "EOL", "LTS").
-		Rows(rows...).
+		Rows(tableRows...).
 		StyleFunc(func(row, col int) lipgloss.Style {
 			baseStyle := lipgloss.NewStyle().Padding(0, 1)
 
-			// LTS column is centered
 			if col == 5 {
 				baseStyle = baseStyle.Align(lipgloss.Center)
 			}
@@ -253,15 +320,13 @@ func DisplayCycles(product string, cycles []api.Cycle, showAll bool) {
 				return tableHeaderStyle.Padding(0, 1)
 			}
 
-			cycle := displayCycles[row]
-			if cycle.EOL.IsEOL() {
+			if rows[row].IsEOL {
 				baseStyle = baseStyle.Foreground(lipgloss.Color("203"))
 			} else {
 				baseStyle = baseStyle.Foreground(lipgloss.Color("42"))
 			}
 
-			// LTS column gets special styling
-			if col == 5 && cycle.LTS.IsLTS() {
+			if col == 5 && rows[row].LTS {
 				return baseStyle.Foreground(lipgloss.Color("220"))
 			}
 
@@ -288,4 +353,106 @@ func DisplayCycles(product string, cycles []api.Cycle, showAll bool) {
 		summary += fmt.Sprintf(", %d EOL", eolCount)
 	}
 	fmt.Println(dimStyle.Render(summary))
+}
+
+// formatAsMarkdown renders a Markdown table
+func formatAsMarkdown(product string, rows []displayRow) {
+	fmt.Printf("# Release cycles for %s\n\n", product)
+	fmt.Println("| CYCLE | LATEST | RELEASED | SUPPORT | EOL | LTS |")
+	fmt.Println("|-------|--------|----------|---------|-----|-----|")
+
+	for _, r := range rows {
+		released := formatMarkdownDate(r.ReleasedRel, r.ReleasedRaw)
+		support := formatMarkdownDate(r.SupportRel, r.SupportRaw)
+		eol := formatMarkdownDate(r.EOLRel, r.EOLRaw)
+		lts := ""
+		if r.LTS {
+			lts = "✔"
+		}
+
+		fmt.Printf("| %s | %s | %s | %s | %s | %s |\n",
+			r.Cycle, r.Latest, released, support, eol, lts)
+	}
+}
+
+// formatMarkdownDate combines relative and raw date for Markdown output
+func formatMarkdownDate(rel, raw string) string {
+	if rel == "" && raw == "" {
+		return ""
+	}
+	if raw == "" || raw == "true" || raw == "false" {
+		return rel
+	}
+	if rel == "" {
+		return raw
+	}
+	return fmt.Sprintf("%s (%s)", rel, raw)
+}
+
+// formatAsCSV renders CSV output
+func formatAsCSV(rows []displayRow) {
+	w := csv.NewWriter(os.Stdout)
+	defer w.Flush()
+
+	_ = w.Write([]string{"CYCLE", "LATEST", "RELEASED", "SUPPORT", "EOL", "LTS"})
+
+	for _, r := range rows {
+		lts := "false"
+		if r.LTS {
+			lts = "true"
+		}
+		_ = w.Write([]string{
+			r.Cycle,
+			r.Latest,
+			r.ReleasedRaw,
+			r.SupportRaw,
+			r.EOLRaw,
+			lts,
+		})
+	}
+}
+
+// formatAsHTML renders an HTML table
+func formatAsHTML(product string, rows []displayRow) {
+	fmt.Printf("<h1>Release cycles for %s</h1>\n", product)
+	fmt.Println("<table>")
+	fmt.Println("  <thead>")
+	fmt.Println("    <tr><th>CYCLE</th><th>LATEST</th><th>RELEASED</th><th>SUPPORT</th><th>EOL</th><th>LTS</th></tr>")
+	fmt.Println("  </thead>")
+	fmt.Println("  <tbody>")
+
+	for _, r := range rows {
+		color := "green"
+		if r.IsEOL {
+			color = "red"
+		}
+
+		released := formatHTMLDate(r.ReleasedRel, r.ReleasedRaw)
+		support := formatHTMLDate(r.SupportRel, r.SupportRaw)
+		eol := formatHTMLDate(r.EOLRel, r.EOLRaw)
+		lts := ""
+		if r.LTS {
+			lts = "✔"
+		}
+
+		fmt.Printf("    <tr style=\"color: %s;\"><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>\n",
+			color, r.Cycle, r.Latest, released, support, eol, lts)
+	}
+
+	fmt.Println("  </tbody>")
+	fmt.Println("</table>")
+}
+
+// formatHTMLDate combines relative and raw date for HTML output
+func formatHTMLDate(rel, raw string) string {
+	if rel == "" && raw == "" {
+		return ""
+	}
+	if raw == "" || raw == "true" || raw == "false" {
+		return rel
+	}
+	if rel == "" {
+		return raw
+	}
+	return fmt.Sprintf("%s (%s)", rel, raw)
 }
