@@ -7,6 +7,11 @@ version := `git describe --tags --always --dirty 2>/dev/null || echo "dev"`
 default:
     @just --list
 
+# Setup project after checkout
+setup:
+    go mod download
+    @command -v pre-commit >/dev/null && pre-commit install || echo "pre-commit not found, skipping hook installation"
+
 # Build binary
 build:
     go build -ldflags="-s -w -X 'main.version={{ version }}'" -trimpath -o build/eol-date ./cmd/eol-date
