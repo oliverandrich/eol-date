@@ -52,4 +52,5 @@ release-snapshot:
 
 # Generate demo GIF with vhs
 demo:
+    @command -v vhs >/dev/null || { echo "vhs not found, please install: https://github.com/charmbracelet/vhs"; exit 1; }
     vhs < docs/eol-date.tape
