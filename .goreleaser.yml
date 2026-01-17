@@ -1,0 +1,83 @@
+# SPDX-License-Identifier: EUPL-1.2
+# Copyright (c) 2025 Oliver Andrich
+
+version: 2
+project_name: __ProjectName__
+
+env_files:
+  github_token: ~/.config/goreleaser/github_token
+
+builds:
+  - main: ./cmd/__ProjectName__
+    binary: __ProjectName__
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+
+archives:
+  - name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+      - goos: darwin
+        formats:
+          - zip
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+  groups:
+    - title: Features
+      regexp: "^feat"
+    - title: Bug Fixes
+      regexp: "^fix"
+    - title: Others
+      order: 999
+
+homebrew_casks:
+  - name: __ProjectName__
+    homepage: https://github.com/oliverandrich/__ProjectName__
+    description: __ProjectDescription__
+    binaries:
+      - __ProjectName__
+    directory: Casks
+    repository:
+      owner: oliverandrich
+      name: homebrew-tap
+    commit_author:
+      name: Oliver Andrich
+      email: oliver@andrich.me
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/__ProjectName__"]
+          end
+
+release:
+  github:
+    owner: oliverandrich
+    name: __ProjectName__
+  draft: false
+  prerelease: auto
+

@@ -1,0 +1,18 @@
+# Build output
+/build/
+/dist/
+
+# Test coverage
+coverage.out
+*.coverprofile
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+*.swp
+
+# Claude Code
+CLAUDE.md
+AGENTS.md
