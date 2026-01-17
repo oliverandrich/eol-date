@@ -1,14 +1,14 @@
 Output docs/eol-date.gif
 
 Set TypingSpeed 75ms
-Set FontSize 16
+Set FontSize 18
 Set Width 1280
-Set Height 1024
+Set Height 800
 
 Type "Welcome to eol-date!"
 Sleep 1
 
-Space 
+Space
 
 Type "A tool to query the endoflife.date API."
 Sleep 1
