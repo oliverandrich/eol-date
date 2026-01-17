@@ -2,14 +2,14 @@
 # Copyright (c) 2025 Oliver Andrich
 
 version: 2
-project_name: __ProjectName__
+project_name: eol-date
 
 env_files:
   github_token: ~/.config/goreleaser/github_token
 
 builds:
-  - main: ./cmd/__ProjectName__
-    binary: __ProjectName__
+  - main: ./cmd/eol-date
+    binary: eol-date
     env:
       - CGO_ENABLED=0
     goos:
@@ -55,11 +55,11 @@ changelog:
       order: 999
 
 homebrew_casks:
-  - name: __ProjectName__
-    homepage: https://github.com/oliverandrich/__ProjectName__
-    description: __ProjectDescription__
+  - name: eol-date
+    homepage: https://github.com/oliverandrich/eol-date
+    description: CLI tool to check end-of-life dates for software products using the endoflife.date API.
     binaries:
-      - __ProjectName__
+      - eol-date
     directory: Casks
     repository:
       owner: oliverandrich
@@ -71,13 +71,12 @@ homebrew_casks:
       post:
         install: |
           if OS.mac?
-            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/__ProjectName__"]
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/eol-date"]
           end
 
 release:
   github:
     owner: oliverandrich
-    name: __ProjectName__
+    name: eol-date
   draft: false
   prerelease: auto
-

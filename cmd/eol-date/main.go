@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/oliverandrich/eol-date/internal/example"
+	"github.com/oliverandrich/eol-date/internal/api"
+	"github.com/oliverandrich/eol-date/internal/search"
+	"github.com/oliverandrich/eol-date/internal/ui"
 	"github.com/urfave/cli/v3"
 )
 
@@ -16,15 +18,15 @@ var version = "dev"
 
 func main() {
 	cmd := &cli.Command{
-		Name:    "eol-date",
-		Usage:   "__ProjectDescription__",
-		Version: version,
+		Name:      "eol-date",
+		Usage:     "Check end-of-life dates for software products",
+		ArgsUsage: "<product>",
+		Version:   version,
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:    "name",
-				Aliases: []string{"n"},
-				Usage:   "name to greet",
-				Value:   "World",
+			&cli.BoolFlag{
+				Name:    "all",
+				Aliases: []string{"a"},
+				Usage:   "show all cycles including end-of-life versions",
 			},
 		},
 		Action: run,
@@ -37,8 +39,38 @@ func main() {
 }
 
 func run(ctx context.Context, cmd *cli.Command) error {
-	name := cmd.String("name")
-	message := example.Greet(name)
-	fmt.Println(message)
+	if cmd.NArg() < 1 {
+		return fmt.Errorf("product name required\n\nUsage: eol-date <product>\n\nExample: eol-date python")
+	}
+
+	query := cmd.Args().First()
+	showAll := cmd.Bool("all")
+
+	products, err := api.FetchProducts(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to fetch product list: %w", err)
+	}
+
+	product, found := search.FindExact(products, query)
+	if !found {
+		matches := search.FindSimilar(products, query, 10)
+		if len(matches) == 0 {
+			return fmt.Errorf("no products found matching '%s'", query)
+		}
+
+		selected, selectErr := ui.SelectProduct(matches)
+		if selectErr != nil {
+			return selectErr
+		}
+		product = selected
+	}
+
+	cycles, err := api.FetchProduct(ctx, product)
+	if err != nil {
+		return fmt.Errorf("failed to fetch product details: %w", err)
+	}
+
+	ui.DisplayCycles(product, cycles, showAll)
+
 	return nil
 }

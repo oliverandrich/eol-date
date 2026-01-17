@@ -1,6 +1,6 @@
 # __ProjectName__ - Task Runner
-
 # Version from git
+
 version := `git describe --tags --always --dirty 2>/dev/null || echo "dev"`
 
 # Default: show available commands
@@ -9,11 +9,11 @@ default:
 
 # Build binary
 build:
-    go build -ldflags="-s -w -X 'main.version={{version}}'" -trimpath -o build/__ProjectName__ ./cmd/__ProjectName__
+    go build -ldflags="-s -w -X 'main.version={{ version }}'" -trimpath -o build/eol-date ./cmd/eol-date
 
 # Run tests
 test *ARGS:
-    go test ./... {{ARGS}}
+    go test ./... {{ ARGS }}
 
 # Format code
 fmt:
@@ -35,7 +35,7 @@ clean:
 
 # Install binary to $GOPATH/bin
 install:
-    go install -ldflags="-s -w -X 'main.version={{version}}'" ./cmd/__ProjectName__
+    go install -ldflags="-s -w -X 'main.version={{ version }}'" ./cmd/eol-date
 
 # Release mit goreleaser erstellen
 release:
