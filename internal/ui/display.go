@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"codeberg.org/oliverandrich/eol-date/internal/api"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
-	"github.com/oliverandrich/eol-date/internal/api"
 )
 
 var (

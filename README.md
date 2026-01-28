@@ -18,19 +18,20 @@ CLI tool to check end-of-life dates for software products using the [endoflife.d
 ### Homebrew
 
 ```bash
-brew install oliverandrich/tap/eol-date
+brew tap oliverandrich/tap https://codeberg.org/oliverandrich/homebrew-tap.git
+brew install eol-date
 ```
 
 ### Go
 
 ```bash
-go install github.com/oliverandrich/eol-date/cmd/eol-date@latest
+go install codeberg.org/oliverandrich/eol-date/cmd/eol-date@latest
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/oliverandrich/eol-date.git
+git clone https://codeberg.org/oliverandrich/eol-date.git
 cd eol-date
 just build
 ```

@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/oliverandrich/eol-date/internal/api"
-	"github.com/oliverandrich/eol-date/internal/search"
-	"github.com/oliverandrich/eol-date/internal/ui"
+	"codeberg.org/oliverandrich/eol-date/internal/api"
+	"codeberg.org/oliverandrich/eol-date/internal/search"
+	"codeberg.org/oliverandrich/eol-date/internal/ui"
 	"github.com/urfave/cli/v3"
 )
 

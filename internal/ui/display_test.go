@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"codeberg.org/oliverandrich/eol-date/internal/api"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/oliverandrich/eol-date/internal/api"
 )
 
 func TestFormatDuration(t *testing.T) {

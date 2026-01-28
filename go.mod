@@ -1,4 +1,4 @@
-module github.com/oliverandrich/eol-date
+module codeberg.org/oliverandrich/eol-date
 
 go 1.24.0
 

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # SPDX-License-Identifier: EUPL-1.2
 # Copyright (c) 2025 Oliver Andrich
 
@@ -5,7 +6,7 @@ version: 2
 project_name: eol-date
 
 env_files:
-  github_token: ~/.config/goreleaser/github_token
+  gitea_token: ~/.config/goreleaser/gitea_token
 
 builds:
   - main: ./cmd/eol-date
@@ -56,7 +57,7 @@ changelog:
 
 homebrew_casks:
   - name: eol-date
-    homepage: https://github.com/oliverandrich/eol-date
+    homepage: https://codeberg.org/oliverandrich/eol-date
     description: CLI tool to check end-of-life dates for software products using the endoflife.date API.
     binaries:
       - eol-date
@@ -75,8 +76,11 @@ homebrew_casks:
           end
 
 release:
-  github:
+  gitea:
     owner: oliverandrich
     name: eol-date
-  draft: false
-  prerelease: auto
+  extra_files: []
+
+gitea_urls:
+  api: https://codeberg.org/api/v1/
+  download: https://codeberg.org

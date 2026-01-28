@@ -1,6 +1,6 @@
-# __ProjectName__ - Task Runner
-# Version from git
+# eol-date - Task Runner
 
+# Version from git
 version := `git describe --tags --always --dirty 2>/dev/null || echo "dev"`
 
 # Default: show available commands
@@ -19,6 +19,11 @@ build:
 # Run tests
 test *ARGS:
     go test ./... {{ ARGS }}
+
+# Run tests with coverage report
+cover:
+    go test -coverprofile=coverage.out ./...
+    go tool cover -html=coverage.out
 
 # Format code
 fmt:
@@ -42,13 +47,17 @@ clean:
 install:
     go install -ldflags="-s -w -X 'main.version={{ version }}'" ./cmd/eol-date
 
-# Release mit goreleaser erstellen
-release:
-    goreleaser release --clean
+# Tidy dependencies
+tidy:
+    go mod tidy
 
-# Lokaler Test-Build ohne Release (Snapshot)
-release-snapshot:
-    goreleaser release --snapshot --clean
+# Cross-compile for all platforms using goreleaser
+release:
+    goreleaser build --clean --snapshot
+
+# Create a full release with archives and checksums
+release-dist:
+    goreleaser release --clean --snapshot --skip=publish
 
 # Generate demo GIF with vhs
 demo:
