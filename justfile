@@ -51,13 +51,9 @@ install:
 tidy:
     go mod tidy
 
-# Cross-compile for all platforms using goreleaser
-release:
-    goreleaser build --clean --snapshot
-
-# Create a full release with archives and checksums
-release-dist:
-    goreleaser release --clean --snapshot --skip=publish
+# Create and publish a release (requires git tag)
+release *ARGS:
+    goreleaser release --clean {{ARGS}}
 
 # Generate demo GIF with vhs
 demo:

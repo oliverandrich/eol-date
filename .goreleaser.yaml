@@ -79,6 +79,7 @@ release:
   gitea:
     owner: oliverandrich
     name: eol-date
+  prerelease: auto
   extra_files: []
 
 gitea_urls:
