@@ -16,13 +16,18 @@ setup:
 build:
     go build -ldflags="-s -w -X 'main.version={{ version }}'" -trimpath -o build/eol-date ./cmd/eol-date
 
-# Run tests
-test *ARGS:
-    go test ./... {{ ARGS }}
+# Run all tests
+# Requires: go install github.com/mfridman/tparse@latest
+test:
+    set -o pipefail && go test -json ./... | tparse -progress
 
 # Run tests with coverage report
+# Requires: go install github.com/mfridman/tparse@latest
 cover:
-    go test -coverprofile=coverage.out ./...
+    set -o pipefail && go test -json -coverprofile=coverage.out ./... | tparse -progress
+
+# Open coverage report in browser
+cover-report:
     go tool cover -html=coverage.out
 
 # Format code

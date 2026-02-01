@@ -85,13 +85,21 @@ Release cycles for python
 ## Development
 
 ```bash
-just setup   # Setup project (download deps, install pre-commit hooks)
-just build   # Build binary to build/eol-date
-just test    # Run tests
-just fmt     # Format code
-just lint    # Run linter
-just check   # Run fmt, lint, and test
-just demo    # Generate demo GIF with vhs
+just setup        # Setup project (download deps, install pre-commit hooks)
+just build        # Build binary to build/eol-date
+just test         # Run tests (requires tparse)
+just cover        # Run tests with coverage (requires tparse)
+just cover-report # Open coverage report in browser
+just fmt          # Format code
+just lint         # Run linter
+just check        # Run fmt, lint, and test
+just demo         # Generate demo GIF with vhs
+```
+
+Install tparse for nicer test output:
+
+```bash
+go install github.com/mfridman/tparse@latest
 ```
 
 ## License
