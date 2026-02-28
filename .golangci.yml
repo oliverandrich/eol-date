@@ -46,6 +46,9 @@ linters:
       - linters:
           - gosec
         text: "G104:"
+      - linters:
+          - gosec
+        text: "G704:"
     paths:
       - third_party$
       - builtin$

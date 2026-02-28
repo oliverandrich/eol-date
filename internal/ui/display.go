@@ -10,9 +10,11 @@ import (
 	"strings"
 	"time"
 
+	"image/color"
+
+	"charm.land/lipgloss/v2"
+	"charm.land/lipgloss/v2/table"
 	"codeberg.org/oliverandrich/eol-date/internal/api"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
 )
 
 var (
@@ -57,7 +59,7 @@ type relativeDate struct {
 }
 
 // combinedCell creates a single string with relative left-aligned and date right-aligned
-func combinedCell(rel relativeDate, relColor, dateColor lipgloss.Color, width int) string {
+func combinedCell(rel relativeDate, relColor, dateColor color.Color, width int) string {
 	if rel.relative == "" && rel.date == "" {
 		return ""
 	}

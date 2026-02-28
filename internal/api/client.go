@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -19,7 +20,12 @@ var httpClient = &http.Client{
 
 // FetchProducts retrieves the list of all product names from endoflife.date
 func FetchProducts(ctx context.Context) ([]string, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL+"/all.json", nil)
+	u, err := url.JoinPath(baseURL, "all.json")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build URL: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -44,7 +50,12 @@ func FetchProducts(ctx context.Context) ([]string, error) {
 
 // FetchProduct retrieves the release cycles for a specific product
 func FetchProduct(ctx context.Context, name string) ([]Cycle, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/%s.json", baseURL, name), nil)
+	u, err := url.JoinPath(baseURL, name+".json")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build URL: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
