@@ -24,8 +24,7 @@ CLI tool to check end-of-life dates for software products using the [endoflife.d
 ### Homebrew
 
 ```bash
-brew tap oliverandrich/tap https://github.com/oliverandrich/homebrew-tap.git
-brew install eol-date
+brew install oliverandrich/tap/eol-date
 ```
 
 ### Go
