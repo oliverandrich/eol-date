@@ -1,64 +1,63 @@
-# eol-date - Task Runner
-
-# Version from git
-version := `git describe --tags --always --dirty 2>/dev/null || echo "dev"`
-
-# Default: show available commands
+# Default recipe: list available commands
 default:
     @just --list
 
-# Setup project after checkout
-setup:
-    go mod download
-    @command -v pre-commit >/dev/null && pre-commit install || echo "pre-commit not found, skipping hook installation"
-
-# Build binary
-build:
-    go build -ldflags="-s -w -X 'main.version={{ version }}'" -trimpath -o build/eol-date ./cmd/eol-date
-
 # Run all tests
-# Requires: go install github.com/mfridman/tparse@latest
-test:
-    set -o pipefail && go test -json ./... | tparse -progress
+test *args:
+    go test -json {{args}} ./... | tparse
+
+# Run linter
+lint:
+    golangci-lint run ./...
+
+# Format all Go files
+fmt:
+    gofmt -w .
+    goimports -w .
 
 # Run tests with coverage report
-# Requires: go install github.com/mfridman/tparse@latest
-cover:
-    set -o pipefail && go test -json -coverprofile=coverage.out ./... | tparse -progress
+coverage:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    go test -json -coverprofile=coverage.out ./... | tparse
+    go tool cover -html=coverage.out -o coverage.html
+    echo "Coverage report: coverage.html"
 
-# Open coverage report in browser
-cover-report:
-    go tool cover -html=coverage.out
-
-# Format code
-fmt:
-    go fmt ./...
-
-# Lint code
-lint:
-    golangci-lint run
-
-# Run all checks (format, lint, test)
-check:
-    just fmt
-    just lint
-    just test
-
-# Clean build artifacts
-clean:
-    rm -rf build/
-
-# Install binary to $GOPATH/bin
-install:
-    go install -ldflags="-s -w -X 'main.version={{ version }}'" ./cmd/eol-date
-
-# Tidy dependencies
+# Tidy module dependencies
 tidy:
     go mod tidy
 
-# Create and publish a release (requires git tag)
-release *ARGS:
-    goreleaser release --clean {{ARGS}}
+# Install binary to $GOPATH/bin
+install:
+    go install -ldflags="-s -w -X 'main.version=$(git describe --tags --always --dirty 2>/dev/null || echo dev)'" ./cmd/eol-date
+
+# Check that all required dev tools are installed
+setup:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    ok=true
+    check() {
+        if command -v "$1" &>/dev/null; then
+            printf "  %-20s %s\n" "$1" "$(command -v "$1")"
+        else
+            printf "  %-20s MISSING — %s\n" "$1" "$2"
+            ok=false
+        fi
+    }
+    echo "Checking dev tools:"
+    check go              "https://go.dev/dl/"
+    check golangci-lint   "go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest"
+    check tparse          "go install github.com/mfridman/tparse@latest"
+    check goimports       "go install golang.org/x/tools/cmd/goimports@latest"
+    check pre-commit      "https://pre-commit.com/#install"
+    echo ""
+    if $ok; then
+        echo "All tools installed."
+        echo "Run 'pre-commit install' to set up git hooks."
+    else
+        echo "Some tools are missing. Install them and re-run 'just setup'."
+        exit 1
+    fi
 
 # Generate demo GIF with vhs
 demo:
