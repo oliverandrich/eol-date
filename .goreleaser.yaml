@@ -5,9 +5,6 @@
 version: 2
 project_name: eol-date
 
-env_files:
-  gitea_token: ~/.config/goreleaser/gitea_token
-
 builds:
   - main: ./cmd/eol-date
     binary: eol-date
@@ -57,7 +54,7 @@ changelog:
 
 homebrew_casks:
   - name: eol-date
-    homepage: https://codeberg.org/oliverandrich/eol-date
+    homepage: https://github.com/oliverandrich/eol-date
     description: CLI tool to check end-of-life dates for software products using the endoflife.date API.
     binaries:
       - eol-date
@@ -65,6 +62,7 @@ homebrew_casks:
     repository:
       owner: oliverandrich
       name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     commit_author:
       name: Oliver Andrich
       email: oliver@andrich.me
@@ -76,12 +74,5 @@ homebrew_casks:
           end
 
 release:
-  gitea:
-    owner: oliverandrich
-    name: eol-date
+  name_template: "{{.Tag}}"
   prerelease: auto
-  extra_files: []
-
-gitea_urls:
-  api: https://codeberg.org/api/v1/
-  download: https://codeberg.org

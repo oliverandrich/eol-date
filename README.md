@@ -2,7 +2,7 @@
 
 [![Go Version](https://img.shields.io/badge/go-1.24-00ADD8?style=for-the-badge&logo=go&logoColor=white)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-EUPL--1.2-blue?style=for-the-badge)](LICENSE)
-[![Codeberg](https://img.shields.io/badge/codeberg-repo-2185D0?style=for-the-badge&logo=codeberg&logoColor=white)](https://codeberg.org/oliverandrich/eol-date)
+[![GitHub](https://img.shields.io/badge/github-repo-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/oliverandrich/eol-date)
 
 ![eol-date demo](docs/eol-date.gif)
 
@@ -22,20 +22,20 @@ CLI tool to check end-of-life dates for software products using the [endoflife.d
 ### Homebrew
 
 ```bash
-brew tap oliverandrich/tap https://codeberg.org/oliverandrich/homebrew-tap.git
+brew tap oliverandrich/tap https://github.com/oliverandrich/homebrew-tap.git
 brew install eol-date
 ```
 
 ### Go
 
 ```bash
-go install codeberg.org/oliverandrich/eol-date/cmd/eol-date@latest
+go install github.com/oliverandrich/eol-date/cmd/eol-date@latest
 ```
 
 ### From Source
 
 ```bash
-git clone https://codeberg.org/oliverandrich/eol-date.git
+git clone https://github.com/oliverandrich/eol-date.git
 cd eol-date
 just build
 ```

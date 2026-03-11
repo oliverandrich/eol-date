@@ -14,7 +14,7 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/table"
-	"codeberg.org/oliverandrich/eol-date/internal/api"
+	"github.com/oliverandrich/eol-date/internal/api"
 )
 
 var (
