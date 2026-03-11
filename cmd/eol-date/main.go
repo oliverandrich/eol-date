@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime/debug"
 
 	"github.com/oliverandrich/eol-date/internal/api"
 	"github.com/oliverandrich/eol-date/internal/search"
@@ -15,6 +16,14 @@ import (
 )
 
 var version = "dev"
+
+func init() {
+	if version == "dev" {
+		if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+			version = info.Main.Version
+		}
+	}
+}
 
 func main() {
 	cmd := &cli.Command{
