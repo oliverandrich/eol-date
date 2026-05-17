@@ -43,7 +43,11 @@ func TestFormatDuration(t *testing.T) {
 }
 
 func TestFormatRelease(t *testing.T) {
+	// formatDuration buckets months as 30 days; AddDate would drift across short Februaries.
+	const month = 30 * 24 * time.Hour
 	now := time.Now()
+	recent := now.Add(-3 * month)
+	old := now.Add(-30 * month)
 
 	tests := []struct {
 		name         string
@@ -59,15 +63,15 @@ func TestFormatRelease(t *testing.T) {
 		},
 		{
 			name:         "recent release",
-			releaseTime:  now.AddDate(0, -3, 0),
+			releaseTime:  recent,
 			wantRelative: "3m ago",
-			wantDate:     now.AddDate(0, -3, 0).Format("2006-01-02"),
+			wantDate:     recent.Format("2006-01-02"),
 		},
 		{
 			name:         "old release",
-			releaseTime:  now.AddDate(-2, -6, 0),
+			releaseTime:  old,
 			wantRelative: "2y 6m ago",
-			wantDate:     now.AddDate(-2, -6, 0).Format("2006-01-02"),
+			wantDate:     old.Format("2006-01-02"),
 		},
 	}
 
