@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#MISE description="Run tests with coverage and report"
+#MISE sources=["**/*.go", "go.mod", "go.sum"]
+#MISE outputs=["coverage.out", "coverage.html"]
+set -euo pipefail
+
+go test -json -coverprofile=coverage.out ./... | tparse
+go tool cover -html=coverage.out -o coverage.html
+echo "Coverage report: coverage.html"

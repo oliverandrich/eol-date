@@ -4,6 +4,7 @@
 
 # Test coverage
 coverage.out
+coverage.html
 *.coverprofile
 
 # OS

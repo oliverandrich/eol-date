@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#MISE description="Install pinned dev tools and verify the environment"
+set -euo pipefail
+
+mise install
+
+ok=true
+check() {
+    if command -v "$1" &>/dev/null; then
+        printf "  %-20s %s\n" "$1" "$(command -v "$1")"
+    else
+        printf "  %-20s MISSING\n" "$1"
+        ok=false
+    fi
+}
+
+echo "Checking dev tools:"
+check mise
+check go
+check golangci-lint
+check tparse
+check goimports
+check govulncheck
+check goreleaser
+check pre-commit
+echo ""
+
+if $ok; then
+    echo "All tools installed."
+    echo "Run 'pre-commit install' to set up git hooks."
+else
+    echo "Some tools are missing. Check that mise is activated in your shell (https://mise.jdx.dev/getting-started.html)."
+    exit 1
+fi

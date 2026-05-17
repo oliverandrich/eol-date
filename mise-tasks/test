@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Run tests with tparse output; accepts extra go test flags"
+set -euo pipefail
+
+go test -json "$@" ./... | tparse
